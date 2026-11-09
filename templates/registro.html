@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Palabra del Día - Registro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <header>
+            <h1>LA PALABRA DEL DÍA</h1>
+            <h2>REGISTRO DE CUENTA</h2>
+        </header>
+
+        <form action="/register" method="POST" class="auth-form">
+            <div class="input-group">
+                <label for="username">Nombre de usuario</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Crear cuenta</button>
+        </form>
+
+        <div class="register-redirect">
+            <p>¿Ya tenés cuenta?</p>
+            <a href="/" class="btn-secondary">Iniciar sesión</a>
+        </div>
+    </div>
+</body>
+</html>

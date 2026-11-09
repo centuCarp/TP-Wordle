@@ -1,0 +1,120 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    background-color: #121213;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+}
+
+.header {
+    border-bottom: 1px solid #3a3a3c;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.header h1 {
+    font-size: 2rem;
+    letter-spacing: 0.2rem;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    height: calc(100vh - 60px);
+    padding: 20px 10px;
+}
+
+/* Tablero */
+.board {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 5px;
+    width: 350px;
+    height: 420px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+}
+
+.tile {
+    border: 2px solid #3a3a3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+/* Estados de las letras (para la lógica posterior) */
+.tile.correct {
+    background-color: #538d4e;
+    border-color: #538d4e;
+}
+
+.tile.present {
+    background-color: #b59f3b;
+    border-color: #b59f3b;
+}
+
+.tile.absent {
+    background-color: #3a3a3c;
+    border-color: #3a3a3c;
+}
+
+/* Teclado */
+.keyboard {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.key {
+    background-color: #818384;
+    color: #ffffff;
+    border: 0;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 15px 0;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.key-large {
+    flex: 1.5;
+    font-size: 0.8rem;
+}
+
+.key:hover {
+    background-color: #9d9fa0;
+}
