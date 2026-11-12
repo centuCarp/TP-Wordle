@@ -30,10 +30,11 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 35px; /* Esto crea el espacio fijo entre el tablero y el teclado */
     width: 100%;
     max-width: 500px;
-    height: calc(100vh - 60px);
+    min-height: calc(100vh - 60px);
     padding: 20px 10px;
 }
 
@@ -42,14 +43,14 @@ body {
     display: grid;
     grid-template-rows: repeat(6, 1fr);
     gap: 5px;
-    width: 350px;
-    height: 420px;
+    width: 330px;  /* Un poquito más compacto para que entre cómodo en cualquier monitor */
+    height: 396px;
 }
 
 .row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
+    gap: 1px;
 }
 .tile {
     border: 2px solid #3a3a3c;
@@ -62,6 +63,7 @@ body {
     user-select: none;
     height: 50px;
     width: 50px;
+    border-radius: 2px;
 }
 
 /* Estados de las letras (para la lógica posterior) */
@@ -118,6 +120,19 @@ body {
 
 .key:hover {
     background-color: #9d9fa0;
+}
+
+/* Estados de las teclas en pantalla */
+.key.correct {
+    background-color: #538d4e;
+}
+
+.key.present {
+    background-color: #b59f3b;
+}
+
+.key.absent {
+    background-color: #3a3a3c;
 }
 
 /* Estilos para el Modal de Fin de Partida */

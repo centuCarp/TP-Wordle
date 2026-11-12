@@ -46,5 +46,5 @@ class GameService:
         return {
             "resultado": resultado,
             "ganado": ganado,
-            "palabra_secreta": secreta
+            "palabra_secreta": self.palabra_secreta
         }

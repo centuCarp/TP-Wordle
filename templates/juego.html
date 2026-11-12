@@ -223,41 +223,56 @@
                 const palabraIngresada = matrizIntentos[filaActual].join("");
 
                 fetch('/api/guess', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ word: palabraIngresada })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if(data.error) {
-                        alert(data.error);
-                        return;
-                    }
-
-                    const tiles = filas[filaActual].children;
-                    const estadosFila = [];
-
-                    data.resultado.forEach((estado, index) => {
-                        tiles[index].classList.add(estado);
-                        estadosFila.push(estado);
-                    });
-
-                    historialResultados.push(estadosFila);
-
-                    if(data.ganado) {
-                        mostrarModal(true, data.palabra_secreta || "");
-                        return;
-                    }
-
-                    filaActual++;
-                    columnaActual = 0;
-
-                    if (filaActual === 6 && !data.ganado) {
-                        mostrarModal(false, data.palabra_secreta || "");
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ word: palabraIngresada })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
             }
+
+        const tiles = filas[filaActual].children;
+        
+        // Recorremos el resultado que manda Python ({letra, estado})
+        data.resultado.forEach((item, index) => {
+            // 1. Pintar el cuadrado del tablero
+            tiles[index].classList.add(item.estado);
+
+            // 2. Buscar la tecla correspondiente en el teclado virtual y pintarla
+            const teclas = document.querySelectorAll('.key');
+            teclas.forEach(tecla => {
+                if (tecla.textContent.trim() === item.letra) {
+                    // Prioridad de colores: Verde > Amarillo > Gris
+                    if (item.estado === 'correct') {
+                        tecla.classList.remove('present', 'absent');
+                        tecla.classList.add('correct');
+                    } else if (item.estado === 'present' && !tecla.classList.contains('correct')) {
+                        tecla.classList.remove('absent');
+                        tecla.classList.add('present');
+                    } else if (item.estado === 'absent' && !tecla.classList.contains('correct') && !tecla.classList.contains('present')) {
+                        tecla.classList.add('absent');
+                    }
+                }
+            });
+        });
+
+        if (data.ganado) {
+            setTimeout(() => alert("¡Felicitaciones, ganaste!"), 200);
+            return;
+        }
+
+        filaActual++;
+        columnaActual = 0;
+
+        if (filaActual === 6 && !data.ganado) {
+            setTimeout(() => alert("¡Juego terminado! Te quedaste sin intentos."), 200);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
             function mostrarModal(ganado, palabraSecreta) {
                 const modal = document.getElementById('gameModal');
