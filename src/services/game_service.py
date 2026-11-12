@@ -2,7 +2,11 @@ from repositories.word_repository import WordRepository
 
 class GameService:
     def __init__(self):
-        # Obtenemos la palabra secreta aleatoria usando el repositorio
+        # Obtenemos la palabra secreta inicial
+        self.palabra_secreta = WordRepository.obtener_palabra_aleatoria()
+
+    def reiniciar_juego(self):
+        # Genera una nueva palabra aleatoria al reiniciar
         self.palabra_secreta = WordRepository.obtener_palabra_aleatoria()
 
     def procesar_intento(self, palabra_ingresada):
@@ -11,7 +15,6 @@ class GameService:
         if len(palabra) != 5:
             return {"error": "La palabra debe tener exactamente 5 letras."}
         
-        # Validar si la palabra existe en el repositorio (.txt)
         if not WordRepository.existe_palabra(palabra):
             return {"error": "La palabra no se encuentra en el diccionario."}
         
@@ -22,7 +25,7 @@ class GameService:
         # Primera pasada: Aciertos exactos (Verde / correct)
         for i in range(5):
             if palabra[i] == secreta[i]:
-                resultado[i] = {"letra": palabra[i], "estado": "correct"}
+                resultado[i] = "correct"
                 letras_secretas_disponibles[i] = None
                 
         # Segunda pasada: Letras contenidas (Amarillo / present) o ausentes (Gris / absent)
@@ -33,14 +36,15 @@ class GameService:
             letra = palabra[i]
             if letra in letras_secretas_disponibles:
                 idx = letras_secretas_disponibles.index(letra)
-                resultado[i] = {"letra": letra, "estado": "present"}
+                resultado[i] = "present"
                 letras_secretas_disponibles[idx] = None
             else:
-                resultado[i] = {"letra": letra, "estado": "absent"}
+                resultado[i] = "absent"
                 
         ganado = (palabra == secreta)
         
         return {
             "resultado": resultado,
-            "ganado": ganado
+            "ganado": ganado,
+            "palabra_secreta": secreta
         }

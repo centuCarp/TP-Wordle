@@ -103,12 +103,51 @@
                 </div>
             </div>
         </main>
+        <!-- Modal de Fin de Partida -->
+        <div id="gameModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="modal-titulo">ESTADÍSTICAS</h2>
+                
+                <!-- Tablero miniatura de resumen -->
+                <div id="mini-board" class="mini-board">
+                    <!-- Se generará dinámicamente con JS -->
+                </div>
+
+                <div id="modal-mensaje" class="palabra-revelada"></div>
+
+                <button id="btn-reiniciar" class="btn-jugar-nuevo">Jugar de nuevo</button>
+            </div>
+        </div>
         <script>
             let filaActual = 0;
             let columnaActual = 0;
             const matrizIntentos = Array(6).fill("").map(() => Array(5).fill(""));
+            const historialResultados = []; 
 
             const filas = document.querySelectorAll('.board .row');
+
+            // Consultar al servidor el estado al cargar la página (para sobrevivir al F5)
+            fetch('/api/estado')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.historial && data.historial.length > 0) {
+                        data.historial.forEach((intento, index) => {
+                            const palabra = intento.palabra;
+                            const resultado = intento.resultado;
+                            
+                            historialResultados.push(resultado);
+
+                            for (let c = 0; c < 5; c++) {
+                                matrizIntentos[index][c] = palabra[c];
+                                const tile = filas[index].children[c];
+                                tile.textContent = palabra[c];
+                                tile.classList.add(resultado[c]);
+                            }
+                        });
+                        filaActual = data.historial.length;
+                    }
+                })
+                .catch(err => console.error("Error al recuperar estado:", err));
 
             // Capturar teclado físico
             document.addEventListener('keydown', (e) => {
@@ -130,9 +169,33 @@
                     } else if (button.id === 'backspace-key') {
                         procesarBorrar();
                     } else {
-                        procesarLetra(button.textContent.trim());
+                        procesarLetra(button.getAttribute('data-key'));
                     }
                 });
+            });
+
+            // Botón Jugar de Nuevo del Modal
+            document.getElementById('btn-reiniciar').addEventListener('click', () => {
+                fetch('/api/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('gameModal').style.display = 'none';
+
+                    filaActual = 0;
+                    columnaActual = 0;
+                    for (let r = 0; r < 6; r++) {
+                        for (let c = 0; c < 5; c++) {
+                            matrizIntentos[r][c] = "";
+                            filas[r].children[c].textContent = "";
+                            filas[r].children[c].className = "tile"; 
+                        }
+                    }
+                    historialResultados.length = 0; 
+                })
+                .catch(error => console.error('Error al reiniciar:', error));
             });
 
             function procesarLetra(letra) {
@@ -171,14 +234,18 @@
                         return;
                     }
 
-                    // Pintar las celdas según el resultado del servidor (ej: 'correct', 'present', 'absent')
                     const tiles = filas[filaActual].children;
+                    const estadosFila = [];
+
                     data.resultado.forEach((estado, index) => {
                         tiles[index].classList.add(estado);
+                        estadosFila.push(estado);
                     });
 
+                    historialResultados.push(estadosFila);
+
                     if(data.ganado) {
-                        alert("¡Felicitaciones, ganaste!");
+                        mostrarModal(true, data.palabra_secreta || "");
                         return;
                     }
 
@@ -186,10 +253,39 @@
                     columnaActual = 0;
 
                     if (filaActual === 6 && !data.ganado) {
-                        alert("¡Juego terminado! Te quedaste sin intentos.");
+                        mostrarModal(false, data.palabra_secreta || "");
                     }
                 })
                 .catch(error => console.error('Error:', error));
+            }
+
+            function mostrarModal(ganado, palabraSecreta) {
+                const modal = document.getElementById('gameModal');
+                const titulo = document.getElementById('modal-titulo');
+                const mensaje = document.getElementById('modal-mensaje');
+                const miniBoard = document.getElementById('mini-board');
+
+                titulo.textContent = ganado ? "¡EXCELENTE!" : "GAME OVER";
+                mensaje.textContent = `La palabra era: ${palabraSecreta}`;
+
+                miniBoard.innerHTML = "";
+                for (let r = 0; r < 6; r++) {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.classList.add('mini-row');
+                    
+                    for (let c = 0; c < 5; c++) {
+                        const tileDiv = document.createElement('div');
+                        tileDiv.classList.add('mini-tile');
+                        
+                        if (historialResultados[r] && historialResultados[r][c]) {
+                            tileDiv.classList.add(historialResultados[r][c]);
+                        }
+                        rowDiv.appendChild(tileDiv);
+                    }
+                    miniBoard.appendChild(rowDiv);
+                }
+
+                modal.style.display = 'flex';
             }
         </script>
     </body>
