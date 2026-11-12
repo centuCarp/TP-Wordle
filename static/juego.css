@@ -51,7 +51,6 @@ body {
     grid-template-columns: repeat(5, 1fr);
     gap: 5px;
 }
-
 .tile {
     border: 2px solid #3a3a3c;
     display: flex;
@@ -61,6 +60,8 @@ body {
     font-weight: bold;
     text-transform: uppercase;
     user-select: none;
+    height: 50px;
+    width: 50px;
 }
 
 /* Estados de las letras (para la lógica posterior) */

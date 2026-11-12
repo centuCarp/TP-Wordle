@@ -33,7 +33,7 @@
                 <!-- Fila 3 -->
                 <div class="row">
                     <div class="tile"></div>
-               <div class="tile"></div>
+                    <div class="tile"></div>
                     <div class="tile"></div>
                     <div class="tile"></div>
                     <div class="tile"></div>
@@ -53,7 +53,7 @@
                     <div class="tile"></div>
                     <div class="tile"></div>
                     <div class="tile"></div>
-                </d     iv>
+                </div>
                 <!-- Fila 6 -->
                 <div class="row">
                     <div class="tile"></div>
@@ -104,17 +104,65 @@
             </div>
         </main>
         <script>
-            // Ejemplo básico para capturar el click en ENTER y comunicarse con Flask
-            document.getElementById('enter-key').addEventListener('click', () => {
-                // Aquí puedes implementar la lógica para leer las 5 letras de la fila activa del tablero
-                const palabraPrueba = "PERRO"; 
+            let filaActual = 0;
+            let columnaActual = 0;
+            const matrizIntentos = Array(6).fill("").map(() => Array(5).fill(""));
+
+            const filas = document.querySelectorAll('.board .row');
+
+            // Capturar teclado físico
+            document.addEventListener('keydown', (e) => {
+                const letra = e.key.toUpperCase();
+                if (e.key === 'Enter') {
+                    procesarEnter();
+                } else if (e.key === 'Backspace') {
+                    procesarBorrar();
+                } else if (/^[A-ZÑ]$/.test(letra)) {
+                    procesarLetra(letra);
+                }
+            });
+
+            // Capturar clicks en el teclado virtual
+            document.querySelectorAll('.key').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (button.id === 'enter-key') {
+                        procesarEnter();
+                    } else if (button.id === 'backspace-key') {
+                        procesarBorrar();
+                    } else {
+                        procesarLetra(button.textContent.trim());
+                    }
+                });
+            });
+
+            function procesarLetra(letra) {
+                if (columnaActual < 5 && filaActual < 6) {
+                    matrizIntentos[filaActual][columnaActual] = letra;
+                    filas[filaActual].children[columnaActual].textContent = letra;
+                    columnaActual++;
+                }
+            }
+
+            function procesarBorrar() {
+                if (columnaActual > 0) {
+                    columnaActual--;
+                    matrizIntentos[filaActual][columnaActual] = "";
+                    filas[filaActual].children[columnaActual].textContent = "";
+                }
+            }
+
+            function procesarEnter() {
+                if (columnaActual < 5) {
+                    alert("Tenés que completar 5 letras");
+                    return;
+                }
+
+                const palabraIngresada = matrizIntentos[filaActual].join("");
 
                 fetch('/api/guess', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ word: palabraPrueba })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word: palabraIngresada })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -122,14 +170,27 @@
                         alert(data.error);
                         return;
                     }
-                    console.log("Resultado del servidor:", data.resultado);
+
+                    // Pintar las celdas según el resultado del servidor (ej: 'correct', 'present', 'absent')
+                    const tiles = filas[filaActual].children;
+                    data.resultado.forEach((estado, index) => {
+                        tiles[index].classList.add(estado);
+                    });
+
                     if(data.ganado) {
                         alert("¡Felicitaciones, ganaste!");
+                        return;
                     }
-                    // Aquí recorrerías 'data.resultado' para pintar dinámicamente las clases .correct, .present o .absent en las celdas de juego.html
+
+                    filaActual++;
+                    columnaActual = 0;
+
+                    if (filaActual === 6 && !data.ganado) {
+                        alert("¡Juego terminado! Te quedaste sin intentos.");
+                    }
                 })
                 .catch(error => console.error('Error:', error));
-            });
+            }
         </script>
     </body>
 </html>
