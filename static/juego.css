@@ -222,3 +222,135 @@ body {
 .btn-jugar-nuevo:hover {
     background-color: #538d4e;
 }
+
+/* Estilos para el botón de Menú y la barra lateral (Sidebar) */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #3a3a3c;
+    width: 100%;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.header h1 {
+    font-size: 2rem;
+    letter-spacing: 0.2rem;
+    margin: 0 auto;
+}
+
+/* Overlay oscuro de fondo */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+}
+
+/* Panel deslizable de la barra lateral */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100%;
+    background-color: #1a1a1b;
+    border-right: 1px solid #3a3a3c;
+    z-index: 2001;
+    display: flex;
+    flex-direction: column;
+    transition: left 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #3a3a3c;
+}
+
+.sidebar-header h2 {
+    font-size: 1.2rem;
+    color: #ffffff;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.8rem;
+    cursor: pointer;
+}
+
+.sidebar-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar-section h3 {
+    font-size: 0.85rem;
+    color: #818384;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sidebar-item {
+    display: block;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.sidebar-item:hover, .sidebar-item.active {
+    background-color: #272729;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid #3a3a3c;
+}
+
+.btn-logout {
+    display: block;
+    width: 100%;
+    background-color: #b83232;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.btn-logout:hover {
+    background-color: #9c2727;
+}

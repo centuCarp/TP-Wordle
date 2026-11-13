@@ -38,17 +38,20 @@ def handle_login():
 @auth_bp.route('/register', methods=['POST'])
 def handle_register():
     """Recibe los datos del formulario de registro."""
-    nombre = request.form.get('nombre')
     username = request.form.get('username')
     email = request.form.get('email')
     password = request.form.get('password')
 
     # Guardamos usando el repositorio
-    UserRepository.guardar_usuario(nombre, username, email, password)
+    UserRepository.guardar_usuario(username, email, password)
 
     # Aquí guardaremos el usuario usando el repositorio y servicio próximamente
     return redirect(url_for('auth.login_view'))
 
-
+@auth_bp.route('/logout')
+def logout():
+    """Cierra la sesión del usuario y redirige al login."""
+    session.clear()
+    return redirect(url_for('auth.login_view'))
 
     

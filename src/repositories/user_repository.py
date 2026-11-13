@@ -12,13 +12,13 @@ def get_db_connection():
 class UserRepository:
     
     @staticmethod
-    def guardar_usuario(nombre, username, email, password):
+    def guardar_usuario(username, email, password):
         """Inserta un nuevo usuario en la base de datos."""
         conexion = get_db_connection()
         cursor = conexion.cursor()
         try:
-            query = "INSERT INTO Usuarios (Nombre, Username, Email, Contraseña) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (nombre, username, email, password))
+            query = "INSERT INTO Usuarios (Username, Email, Contraseña) VALUES (%s, %s, %s)"
+            cursor.execute(query, ( username, email, password))
             conexion.commit()
             return True
         except Exception as e:

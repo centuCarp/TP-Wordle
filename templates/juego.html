@@ -8,59 +8,50 @@
     </head>
     <body>
         <header class="header">
+            <button id="menu-btn" class="menu-btn">☰</button>
             <h1>WORDLE</h1>
+            <div style="width: 30px;"></div> <!-- Elemento visual para centrar el título -->
         </header>
+
+        <!-- Barra lateral (Sidebar) estilo Wordle -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>Menú</h2>
+                <button id="close-sidebar" class="close-btn">&times;</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3>Modos de juego</h3>
+                    <a href="#" class="sidebar-item active">Normal</a>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <a href="/logout" class="btn-logout">Cerrar sesión</a>
+            </div>
+        </aside>
+
 
         <main class="game-container">
             <!-- Tablero de 6 filas y 5 columnas -->
             <div id="board" class="board">
-                <!-- Fila 1 -->
                 <div class="row">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
+                    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
                 </div>
-                <!-- Fila 2 -->
                 <div class="row">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
+                    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
                 </div>
-                <!-- Fila 3 -->
                 <div class="row">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
+                    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
                 </div>
-                <!-- Fila 4 -->
                 <div class="row">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
+                    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
                 </div>
-                <!-- Fila 5 -->
                 <div class="row">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
+                    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
                 </div>
-                <!-- Fila 6 -->
                 <div class="row">
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
-                    <div class="tile"></div>
+                    <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
                 </div>
             </div>
 
@@ -103,30 +94,56 @@
                 </div>
             </div>
         </main>
+
         <!-- Modal de Fin de Partida -->
         <div id="gameModal" class="modal-overlay">
             <div class="modal-content">
                 <h2 id="modal-titulo">ESTADÍSTICAS</h2>
-                
-                <!-- Tablero miniatura de resumen -->
-                <div id="mini-board" class="mini-board">
-                    <!-- Se generará dinámicamente con JS -->
-                </div>
-
+                <div id="mini-board" class="mini-board"></div>
                 <div id="modal-mensaje" class="palabra-revelada"></div>
-
                 <button id="btn-reiniciar" class="btn-jugar-nuevo">Jugar de nuevo</button>
             </div>
         </div>
+
         <script>
             let filaActual = 0;
             let columnaActual = 0;
+            let juegoTerminado = false;
             const matrizIntentos = Array(6).fill("").map(() => Array(5).fill(""));
             const historialResultados = []; 
-
             const filas = document.querySelectorAll('.board .row');
 
-            // Consultar al servidor el estado al cargar la página (para sobrevivir al F5)
+            // Jerarquía de prioridad para los colores del teclado (Verde > Amarillo > Gris)
+            const prioridadColores = {
+                "correct": 3,
+                "present": 2,
+                "absent": 1
+            };
+            const estadosTeclas = {};
+
+            // Control de la barra lateral (Sidebar)
+            const menuBtn = document.getElementById('menu-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            menuBtn.addEventListener('click', () => {
+                sidebar.classList.add('open');
+                sidebarOverlay.style.display = 'block';
+            });
+
+            closeSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                sidebarOverlay.style.display = 'none';
+            });
+
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                sidebarOverlay.style.display = 'none';
+            });
+
+
+            // Consultar al servidor el estado al cargar la página (sobrevive al F5)
             fetch('/api/estado')
                 .then(res => res.json())
                 .then(data => {
@@ -143,14 +160,28 @@
                                 tile.textContent = palabra[c];
                                 tile.classList.add(resultado[c]);
                             }
+                            // También restaurar colores del teclado virtual
+                            actualizarTeclado(palabra, resultado);
                         });
                         filaActual = data.historial.length;
+
+                        // Si al recargar ya había ganado o perdido, mostrar el modal
+                        const ultimoIntento = data.historial[data.historial.length - 1];
+                        const gano = ultimoIntento.resultado.every(estado => estado === "correct");
+                        if (gano) {
+                            juegoTerminado = true;
+                            mostrarModal(true, data.palabra_secreta);
+                        } else if (filaActual === 6) {
+                            juegoTerminado = true;
+                            mostrarModal(false, data.palabra_secreta);
+                        }
                     }
                 })
                 .catch(err => console.error("Error al recuperar estado:", err));
 
             // Capturar teclado físico
             document.addEventListener('keydown', (e) => {
+                if (juegoTerminado) return;
                 const letra = e.key.toUpperCase();
                 if (e.key === 'Enter') {
                     procesarEnter();
@@ -164,6 +195,7 @@
             // Capturar clicks en el teclado virtual
             document.querySelectorAll('.key').forEach(button => {
                 button.addEventListener('click', () => {
+                    if (juegoTerminado) return;
                     if (button.id === 'enter-key') {
                         procesarEnter();
                     } else if (button.id === 'backspace-key') {
@@ -184,8 +216,13 @@
                 .then(data => {
                     document.getElementById('gameModal').style.display = 'none';
 
+                    // Resetear variables
                     filaActual = 0;
                     columnaActual = 0;
+                    juegoTerminado = false;
+                    historialResultados.length = 0;
+
+                    // Limpiar tablero visual
                     for (let r = 0; r < 6; r++) {
                         for (let c = 0; c < 5; c++) {
                             matrizIntentos[r][c] = "";
@@ -193,7 +230,12 @@
                             filas[r].children[c].className = "tile"; 
                         }
                     }
-                    historialResultados.length = 0; 
+
+                    // Limpiar colores del teclado virtual
+                    document.querySelectorAll('.key[data-key]').forEach(button => {
+                        button.classList.remove('correct', 'present', 'absent');
+                    });
+                    for (let key in estadosTeclas) delete estadosTeclas[key];
                 })
                 .catch(error => console.error('Error al reiniciar:', error));
             });
@@ -223,56 +265,65 @@
                 const palabraIngresada = matrizIntentos[filaActual].join("");
 
                 fetch('/api/guess', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ word: palabraIngresada })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-                return;
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word: palabraIngresada })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    const tiles = filas[filaActual].children;
+                    const estadosFila = [];
+
+                    data.resultado.forEach((estado, index) => {
+                        tiles[index].classList.add(estado);
+                        estadosFila.push(estado);
+                    });
+
+                    // Actualizar colores en el teclado virtual
+                    actualizarTeclado(palabraIngresada, data.resultado);
+                    historialResultados.push(estadosFila);
+
+                    if (data.ganado) {
+                        juegoTerminado = true;
+                        setTimeout(() => mostrarModal(true, data.palabra_secreta || ""), 300);
+                        return;
+                    }
+
+                    filaActual++;
+                    columnaActual = 0;
+
+                    if (filaActual === 6 && !data.ganado) {
+                        juegoTerminado = true;
+                        setTimeout(() => mostrarModal(false, data.palabra_secreta || ""), 300);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             }
 
-        const tiles = filas[filaActual].children;
-        
-        // Recorremos el resultado que manda Python ({letra, estado})
-        data.resultado.forEach((item, index) => {
-            // 1. Pintar el cuadrado del tablero
-            tiles[index].classList.add(item.estado);
+            function actualizarTeclado(palabra, resultados) {
+                for (let i = 0; i < palabra.length; i++) {
+                    const letra = palabra[i];
+                    const estadoNuevo = resultados[i];
+                    const estadoActual = estadosTeclas[letra];
 
-            // 2. Buscar la tecla correspondiente en el teclado virtual y pintarla
-            const teclas = document.querySelectorAll('.key');
-            teclas.forEach(tecla => {
-                if (tecla.textContent.trim() === item.letra) {
-                    // Prioridad de colores: Verde > Amarillo > Gris
-                    if (item.estado === 'correct') {
-                        tecla.classList.remove('present', 'absent');
-                        tecla.classList.add('correct');
-                    } else if (item.estado === 'present' && !tecla.classList.contains('correct')) {
-                        tecla.classList.remove('absent');
-                        tecla.classList.add('present');
-                    } else if (item.estado === 'absent' && !tecla.classList.contains('correct') && !tecla.classList.contains('present')) {
-                        tecla.classList.add('absent');
+                    if (!estadoActual || prioridadColores[estadoNuevo] > prioridadColores[estadoActual]) {
+                        estadosTeclas[letra] = estadoNuevo;
                     }
                 }
-            });
-        });
 
-        if (data.ganado) {
-            setTimeout(() => alert("¡Felicitaciones, ganaste!"), 200);
-            return;
-        }
-
-        filaActual++;
-        columnaActual = 0;
-
-        if (filaActual === 6 && !data.ganado) {
-            setTimeout(() => alert("¡Juego terminado! Te quedaste sin intentos."), 200);
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+                document.querySelectorAll('.key[data-key]').forEach(button => {
+                    const letraBtn = button.getAttribute('data-key');
+                    if (estadosTeclas[letraBtn]) {
+                        button.classList.remove('correct', 'present', 'absent');
+                        button.classList.add(estadosTeclas[letraBtn]);
+                    }
+                });
+            }
 
             function mostrarModal(ganado, palabraSecreta) {
                 const modal = document.getElementById('gameModal');
@@ -302,39 +353,6 @@
 
                 modal.style.display = 'flex';
             }
-
-            // Jerarquía de prioridad para los colores del teclado (Verde > Amarillo > Gris)
-            const prioridadColores = {
-                "correct": 3,
-                "present": 2,
-                "absent": 1
-            };
-
-            const estadosTeclas = {};
-
-            function actualizarTeclado(palabra, resultados) {
-                for (let i = 0; i < palabra.length; i++) {
-                    const letra = palabra[i];
-                    const estadoNuevo = resultados[i]; // 'correct', 'present', 'absent'
-                    const estadoActual = estadosTeclas[letra];
-
-                    // Si la letra no tiene estado o el nuevo estado tiene mayor prioridad, lo actualizamos
-                    if (!estadoActual || prioridadColores[estadoNuevo] > prioridadColores[estadoActual]) {
-                        estadosTeclas[letra] = estadoNuevo;
-                    }
-                }
-
-                // Aplicar las clases visuales a los botones del teclado virtual
-                document.querySelectorAll('.key[data-key]').forEach(button => {
-                    const letraBtn = button.getAttribute('data-key');
-                    if (estadosTeclas[letraBtn]) {
-                        // Limpiamos clases previas y asignamos la nueva
-                        button.classList.remove('correct', 'present', 'absent');
-                        button.classList.add(estadosTeclas[letraBtn]);
-                    }
-                });
-            }
-
         </script>
     </body>
 </html>
